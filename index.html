@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="CashCrafter - A simple financial management web app for entrepreneurs. Track income, expenses, and visualize your money."
+    />
+    <title>CashCrafter | Financial Management for Entrepreneurs</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233b82f6'/%3E%3Cstop offset='0.55' stop-color='%232563eb'/%3E%3Cstop offset='1' stop-color='%231e3a8a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='40' height='40' rx='10' fill='url(%23g)'/%3E%3Cpath d='M24.1 12.9 A 10 10 0 1 0 24.1 27.1' stroke='white' stroke-width='3' stroke-linecap='round' fill='none'/%3E%3Cpath d='M19 15 A 7 7 0 1 1 19 25' stroke='%2334d399' stroke-width='2.6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+    <!-- Chart.js library loaded from CDN (no framework, just plain JS library) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <!-- ==================== NAVIGATION BAR ==================== -->
+    <header class="navbar">
+      <div class="container nav-container">
+        <a href="#home" class="logo" aria-label="CashCrafter home">
+          <span class="logo-mark" aria-hidden="true">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#3b82f6" />
+                  <stop offset="0.55" stop-color="#2563eb" />
+                  <stop offset="1" stop-color="#1e3a8a" />
+                </linearGradient>
+                <linearGradient id="logoShine" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#ffffff" stop-opacity="0.28" />
+                  <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <!-- Gradient badge background -->
+              <rect width="40" height="40" rx="10" fill="url(#logoGrad)" />
+              <rect width="40" height="20" rx="10" fill="url(#logoShine)" />
+
+              <!-- Outer C — represents "Cash" (white, larger, opens right) -->
+              <path
+                d="M 24.1 12.9 A 10 10 0 1 0 24.1 27.1"
+                stroke="white"
+                stroke-width="3"
+                stroke-linecap="round"
+                fill="none"
+              />
+
+              <!-- Inner C — represents "Crafter" (emerald, smaller, opens left) -->
+              <path
+                d="M 19 15 A 7 7 0 1 1 19 25"
+                stroke="#34d399"
+                stroke-width="2.6"
+                stroke-linecap="round"
+                fill="none"
+              />
+            </svg>
+          </span>
+          <span class="logo-text">
+            <span class="logo-text-cash">Cash</span><span class="logo-text-crafter">Crafter</span>
+          </span>
+        </a>
+
+        <!-- Mobile menu toggle button -->
+        <button
+          class="menu-toggle"
+          id="menuToggle"
+          aria-label="Toggle navigation menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <nav class="nav-links" id="navLinks">
+          <a href="#home">Home</a>
+          <a href="#features">Features</a>
+          <a href="#calculator">Calculator</a>
+          <a href="#tools">Tools</a>
+          <a href="#funding">Funding</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
+
+          <!-- Auth area: shows Login button OR user chip with logout -->
+          <div class="nav-auth">
+            <button id="openLoginBtn" class="btn btn-primary btn-sm">
+              Login / Sign up
+            </button>
+            <div id="userChip" class="user-chip" hidden>
+              <span class="user-chip-avatar" id="userChipAvatar">U</span>
+              <span class="user-chip-name" id="userChipName">User</span>
+              <button id="logoutBtn" class="user-chip-logout" type="button">
+                Log out
+              </button>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <!-- ==================== AUTH MODAL ==================== -->
+    <div
+      class="auth-modal"
+      id="authModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="authTitle"
+      hidden
+    >
+      <div class="auth-backdrop" id="authBackdrop"></div>
+      <div class="auth-dialog">
+        <button
+          class="auth-close"
+          id="authCloseBtn"
+          aria-label="Close login"
+          type="button"
+        >
+          ×
+        </button>
+
+        <div class="auth-header">
+          <h2 id="authTitle">Welcome to CashCrafter</h2>
+          <p>Create an account to save your budget privately on this device.</p>
+        </div>
+
+        <!-- Tab switcher -->
+        <div class="auth-tabs" role="tablist">
+          <button
+            class="auth-tab is-active"
+            id="loginTabBtn"
+            data-tab="login"
+            role="tab"
+            aria-selected="true"
+            type="button"
+          >
+            Log in
+          </button>
+          <button
+            class="auth-tab"
+            id="signupTabBtn"
+            data-tab="signup"
+            role="tab"
+            aria-selected="false"
+            type="button"
+          >
+            Sign up
+          </button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form id="loginForm" class="auth-form" novalidate>
+          <div class="form-row">
+            <label for="loginEmail">Email</label>
+            <input
+              type="email"
+              id="loginEmail"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+          <div class="form-row">
+            <label for="loginPassword">Password</label>
+            <input
+              type="password"
+              id="loginPassword"
+              placeholder="Your password"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+          <p class="form-error" id="loginError" aria-live="polite"></p>
+          <button type="submit" class="btn btn-primary btn-block">
+            Log in
+          </button>
+        </form>
+
+        <!-- SIGNUP FORM -->
+        <form id="signupForm" class="auth-form" hidden novalidate>
+          <div class="form-row">
+            <label for="signupName">Full name</label>
+            <input
+              type="text"
+              id="signupName"
+              placeholder="Jane Doe"
+              autocomplete="name"
+              maxlength="40"
+              required
+            />
+          </div>
+          <div class="form-row">
+            <label for="signupEmail">Email</label>
+            <input
+              type="email"
+              id="signupEmail"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+          <div class="form-row">
+            <label for="signupPassword">Password</label>
+            <input
+              type="password"
+              id="signupPassword"
+              placeholder="At least 6 characters"
+              autocomplete="new-password"
+              required
+            />
+          </div>
+          <div class="form-row">
+            <label for="signupConfirm">Confirm password</label>
+            <input
+              type="password"
+              id="signupConfirm"
+              placeholder="Repeat your password"
+              autocomplete="new-password"
+              required
+            />
+          </div>
+          <p class="form-error" id="signupError" aria-live="polite"></p>
+          <button type="submit" class="btn btn-primary btn-block">
+            Create account
+          </button>
+        </form>
+
+        <p class="auth-note">
+          Accounts are stored only in your browser. No data ever leaves this
+          device.
+        </p>
+      </div>
+    </div>
+
+    <!-- ==================== HERO / HOME SECTION ==================== -->
+    <section id="home" class="hero">
+      <div class="container hero-container">
+        <div class="hero-text reveal">
+          <span class="badge">Built for Entrepreneurs</span>
+          <h1>Craft a smarter future for your cash flow.</h1>
+          <p class="hero-subtitle">
+            CashCrafter is a lightweight financial management workspace where
+            founders track income, monitor expenses, and visualize their money
+            with clarity — all in one place.
+          </p>
+          <div class="hero-cta">
+            <a href="#calculator" class="btn btn-primary">Try the Calculator</a>
+            <a href="#features" class="btn btn-secondary">Explore Features</a>
+          </div>
+
+          <!-- Quick stats strip -->
+          <div class="stats-strip">
+            <div class="stat">
+              <strong>100%</strong>
+              <span>Private &amp; local</span>
+            </div>
+            <div class="stat">
+              <strong>0$</strong>
+              <span>Free to use</span>
+            </div>
+            <div class="stat">
+              <strong>3 min</strong>
+              <span>To get started</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Decorative card mock used as visual hero element -->
+        <div class="hero-card reveal">
+          <div class="hero-card-header">
+            <span>Monthly snapshot</span>
+            <span class="dot"></span>
+          </div>
+          <div class="hero-card-row income">
+            <span>Income</span>
+            <strong>$8,400</strong>
+          </div>
+          <div class="hero-card-row expense">
+            <span>Expenses</span>
+            <strong>$3,250</strong>
+          </div>
+          <div class="hero-card-row balance">
+            <span>Balance</span>
+            <strong>$5,150</strong>
+          </div>
+          <div class="hero-bar">
+            <div class="hero-bar-fill"></div>
+          </div>
+          <p class="hero-card-note">Healthy runway — keep crafting.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== FEATURES SECTION ==================== -->
+    <section id="features" class="section">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="eyebrow">Features</span>
+          <h2>Everything a founder needs, nothing they don't.</h2>
+          <p>
+            Built around the day-to-day reality of running a small business —
+            quick to use, easy to understand.
+          </p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card reveal">
+            <div class="feature-icon">📥</div>
+            <h3>Track Income</h3>
+            <p>
+              Log every revenue stream — sales, services, retainers — and see
+              totals update instantly.
+            </p>
+          </div>
+
+          <div class="feature-card reveal">
+            <div class="feature-icon">📤</div>
+            <h3>Manage Expenses</h3>
+            <p>
+              Capture costs as they happen and categorize them so you always
+              know where your money goes.
+            </p>
+          </div>
+
+          <div class="feature-card reveal">
+            <div class="feature-icon">📊</div>
+            <h3>Visual Reports</h3>
+            <p>
+              A clean pie chart breaks down your spending so patterns and
+              outliers are easy to spot.
+            </p>
+          </div>
+
+          <div class="feature-card reveal">
+            <div class="feature-icon">💾</div>
+            <h3>Saves Automatically</h3>
+            <p>
+              Your entries are stored locally in your browser, so your data is
+              there when you come back.
+            </p>
+          </div>
+
+          <div class="feature-card reveal">
+            <div class="feature-icon">📱</div>
+            <h3>Responsive Design</h3>
+            <p>
+              Looks and works great on desktop, tablet, and mobile — manage
+              cash on the go.
+            </p>
+          </div>
+
+          <div class="feature-card reveal">
+            <div class="feature-icon">⚡</div>
+            <h3>Fast &amp; Lightweight</h3>
+            <p>
+              Pure HTML, CSS, and JavaScript — no heavy frameworks, no waiting,
+              just instant feedback.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== BUDGET CALCULATOR SECTION ==================== -->
+    <section id="calculator" class="section section-alt">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="eyebrow">Budget Calculator</span>
+          <h2>Add your income and expenses.</h2>
+          <p>
+            Watch your remaining balance update in real time and see your
+            spending breakdown in the chart.
+          </p>
+        </div>
+
+        <!-- Login gate: shown when no user is signed in -->
+        <div class="login-gate reveal" id="loginGate" hidden>
+          <div class="login-gate-icon">🔒</div>
+          <h3>Log in to use the calculator</h3>
+          <p>
+            Each account stores its own private budget on this device — your
+            data is never sent anywhere.
+          </p>
+          <button id="gateLoginBtn" class="btn btn-primary" type="button">
+            Log in or create an account
+          </button>
+        </div>
+
+        <div class="calculator-grid" id="calculatorGrid">
+          <!-- LEFT: Input forms -->
+          <div class="calculator-forms reveal">
+            <!-- Income Form -->
+            <form id="incomeForm" class="entry-form" novalidate>
+              <h3>Add Income</h3>
+              <div class="form-row">
+                <label for="incomeName">Source</label>
+                <input
+                  type="text"
+                  id="incomeName"
+                  placeholder="e.g. Client invoice"
+                  maxlength="40"
+                  required
+                />
+              </div>
+              <div class="form-row">
+                <label for="incomeAmount">Amount ($)</label>
+                <input
+                  type="number"
+                  id="incomeAmount"
+                  placeholder="0.00"
+                  min="0.01"
+                  step="0.01"
+                  required
+                />
+              </div>
+              <p class="form-error" id="incomeError" aria-live="polite"></p>
+              <button type="submit" class="btn btn-primary btn-block">
+                + Add Income
+              </button>
+            </form>
+
+            <!-- Expense Form -->
+            <form id="expenseForm" class="entry-form" novalidate>
+              <h3>Add Expense</h3>
+              <div class="form-row">
+                <label for="expenseName">Category</label>
+                <input
+                  type="text"
+                  id="expenseName"
+                  placeholder="e.g. Marketing, Software"
+                  maxlength="40"
+                  required
+                />
+              </div>
+              <div class="form-row">
+                <label for="expenseAmount">Amount ($)</label>
+                <input
+                  type="number"
+                  id="expenseAmount"
+                  placeholder="0.00"
+                  min="0.01"
+                  step="0.01"
+                  required
+                />
+              </div>
+              <p class="form-error" id="expenseError" aria-live="polite"></p>
+              <button type="submit" class="btn btn-secondary btn-block">
+                + Add Expense
+              </button>
+            </form>
+
+            <button id="resetBtn" class="btn btn-ghost btn-block">
+              Reset all data
+            </button>
+          </div>
+
+          <!-- RIGHT: Summary, chart and lists -->
+          <div class="calculator-results reveal">
+            <!-- Summary cards -->
+            <div class="summary-cards">
+              <div class="summary-card income-card">
+                <span>Total Income</span>
+                <strong id="totalIncome">$0.00</strong>
+              </div>
+              <div class="summary-card expense-card">
+                <span>Total Expenses</span>
+                <strong id="totalExpense">$0.00</strong>
+              </div>
+              <div class="summary-card balance-card">
+                <span>Remaining Balance</span>
+                <strong id="balance">$0.00</strong>
+              </div>
+            </div>
+
+            <!-- Status banner: shows surplus/deficit/savings rate -->
+            <div id="statusBanner" class="status-banner" role="status">
+              Add some entries to see your financial status.
+            </div>
+
+            <!-- Chart -->
+            <div class="chart-wrapper">
+              <h3>Expense Breakdown</h3>
+              <div class="chart-canvas-wrapper">
+                <canvas id="expenseChart"></canvas>
+                <p id="chartEmpty" class="chart-empty">
+                  Add an expense to see your breakdown.
+                </p>
+              </div>
+            </div>
+
+            <!-- Entry lists -->
+            <div class="lists-grid">
+              <div class="list-block">
+                <h4>Income entries</h4>
+                <ul id="incomeList" class="entry-list"></ul>
+                <p id="incomeEmpty" class="list-empty">No income yet.</p>
+              </div>
+              <div class="list-block">
+                <h4>Expense entries</h4>
+                <ul id="expenseList" class="entry-list"></ul>
+                <p id="expenseEmpty" class="list-empty">No expenses yet.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== FINANCIAL TOOLS SECTION ==================== -->
+    <section id="tools" class="section">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="eyebrow">Financial Tools</span>
+          <h2>Useful calculators for everyday decisions.</h2>
+          <p>
+            Quick utilities to help you reason about your money — no signup,
+            just numbers.
+          </p>
+        </div>
+
+        <div class="tools-grid">
+          <div class="tool-card reveal">
+            <h3>Savings Goal</h3>
+            <p>How much to save per month to reach a goal by a target date.</p>
+            <div class="form-row">
+              <label for="goalAmount">Goal amount ($)</label>
+              <input
+                type="number"
+                id="goalAmount"
+                placeholder="10000"
+                min="0.01"
+                step="0.01"
+              />
+            </div>
+            <div class="form-row">
+              <label for="goalMonths">Months</label>
+              <input type="number" id="goalMonths" placeholder="12" min="1" />
+            </div>
+            <button id="calcGoalBtn" class="btn btn-primary btn-block">
+              Calculate
+            </button>
+            <p class="tool-result" id="goalResult"></p>
+          </div>
+
+          <div class="tool-card reveal">
+            <h3>Profit Margin</h3>
+            <p>Quickly check the margin between revenue and cost.</p>
+            <div class="form-row">
+              <label for="revenueInput">Revenue ($)</label>
+              <input
+                type="number"
+                id="revenueInput"
+                placeholder="5000"
+                min="0.01"
+                step="0.01"
+              />
+            </div>
+            <div class="form-row">
+              <label for="costInput">Cost ($)</label>
+              <input
+                type="number"
+                id="costInput"
+                placeholder="3000"
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <button id="calcMarginBtn" class="btn btn-primary btn-block">
+              Calculate
+            </button>
+            <p class="tool-result" id="marginResult"></p>
+          </div>
+
+          <div class="tool-card reveal">
+            <h3>Loan Estimator</h3>
+            <p>Estimate the monthly payment for a simple loan.</p>
+            <div class="form-row">
+              <label for="loanAmount">Loan amount ($)</label>
+              <input
+                type="number"
+                id="loanAmount"
+                placeholder="20000"
+                min="0.01"
+                step="0.01"
+              />
+            </div>
+            <div class="form-row">
+              <label for="loanRate">Annual rate (%)</label>
+              <input
+                type="number"
+                id="loanRate"
+                placeholder="6"
+                min="0"
+                step="0.1"
+              />
+            </div>
+            <div class="form-row">
+              <label for="loanYears">Years</label>
+              <input type="number" id="loanYears" placeholder="5" min="1" />
+            </div>
+            <button id="calcLoanBtn" class="btn btn-primary btn-block">
+              Calculate
+            </button>
+            <p class="tool-result" id="loanResult"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== FUNDING INFO SECTION ==================== -->
+    <section id="funding" class="section section-alt">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="eyebrow">Funding 101</span>
+          <h2>The three main ways to fund your business.</h2>
+          <p>
+            A short, plain-language guide to the funding options most founders
+            actually use when they're starting out.
+          </p>
+        </div>
+
+        <div class="funding-grid">
+          <!-- LOANS -->
+          <article class="funding-card reveal">
+            <div class="funding-icon">🏦</div>
+            <h3>Loans</h3>
+            <p class="funding-lead">Borrow money from a bank or lender.</p>
+            <p>
+              You receive a fixed amount of money up front, and pay it back in
+              monthly instalments with <strong>interest</strong> on top. You
+              don't give up any ownership of your company, but you do take on a
+              monthly obligation — even in months when business is slow.
+            </p>
+            <ul class="funding-points">
+              <li><strong>Source:</strong> banks, NBFCs, online lenders</li>
+              <li><strong>Cost:</strong> interest rate (e.g. 8–14% / year)</li>
+              <li><strong>Best when:</strong> revenue is steady and predictable</li>
+            </ul>
+            <span class="tag">Debt-based funding</span>
+          </article>
+
+          <!-- INVESTORS -->
+          <article class="funding-card reveal">
+            <div class="funding-icon">🤝</div>
+            <h3>Investors</h3>
+            <p class="funding-lead">Sell a share of your company for capital.</p>
+            <p>
+              Angel investors and venture capital firms give you money in
+              exchange for <strong>equity</strong> — a percentage of ownership.
+              You don't repay it like a loan, but the investors now own part of
+              the business and share in its profits and decisions.
+            </p>
+            <ul class="funding-points">
+              <li><strong>Source:</strong> angels, VC firms, accelerators</li>
+              <li><strong>Cost:</strong> ownership (equity) given up</li>
+              <li><strong>Best when:</strong> you're chasing fast growth</li>
+            </ul>
+            <span class="tag">Equity-based funding</span>
+          </article>
+
+          <!-- CROWDFUNDING -->
+          <article class="funding-card reveal">
+            <div class="funding-icon">🌍</div>
+            <h3>Crowdfunding</h3>
+            <p class="funding-lead">Raise small amounts from many people.</p>
+            <p>
+              You pitch your idea on a platform like Kickstarter or Indiegogo,
+              and members of the public chip in to support it — often in
+              exchange for <strong>early product access or rewards</strong>. It
+              also helps validate demand before you build.
+            </p>
+            <ul class="funding-points">
+              <li><strong>Source:</strong> the public, online communities</li>
+              <li><strong>Cost:</strong> rewards, perks, or platform fees</li>
+              <li><strong>Best when:</strong> you have a great product story</li>
+            </ul>
+            <span class="tag">Community-based funding</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== ABOUT SECTION ==================== -->
+    <section id="about" class="section">
+      <div class="container about-container">
+        <div class="section-header reveal">
+          <span class="eyebrow">About</span>
+          <h2>About the developer.</h2>
+        </div>
+
+        <div class="about-card reveal">
+          <div class="about-avatar" aria-hidden="true">HK</div>
+          <div class="about-text">
+            <h3>Harish Kumar Lakshmanan</h3>
+            <p class="about-role">BCA student &amp; aspiring web developer</p>
+            <p>
+              Hi, I am <strong>Harish Kumar Lakshmanan</strong>, a BCA student
+              and aspiring web developer. I developed this financial management
+              website to help entrepreneurs manage their income, expenses, and
+              financial planning in a simple way.
+            </p>
+            <div class="about-tags">
+              <span class="tag">HTML</span>
+              <span class="tag">CSS</span>
+              <span class="tag">JavaScript</span>
+              <span class="tag">Chart.js</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== CONTACT SECTION ==================== -->
+    <section id="contact" class="section section-alt">
+      <div class="container contact-container">
+        <div class="section-header reveal">
+          <span class="eyebrow">Contact</span>
+          <h2>Have a question or feedback?</h2>
+          <p>Send us a message — we'd love to hear from you.</p>
+        </div>
+
+        <form id="contactForm" class="contact-form reveal" novalidate>
+          <div class="form-row">
+            <label for="contactName">Your name</label>
+            <input
+              type="text"
+              id="contactName"
+              placeholder="Jane Doe"
+              required
+            />
+          </div>
+          <div class="form-row">
+            <label for="contactEmail">Email</label>
+            <input
+              type="email"
+              id="contactEmail"
+              placeholder="jane@example.com"
+              required
+            />
+          </div>
+          <div class="form-row">
+            <label for="contactMessage">Message</label>
+            <textarea
+              id="contactMessage"
+              rows="5"
+              placeholder="What's on your mind?"
+              required
+            ></textarea>
+          </div>
+          <p class="form-error" id="contactError" aria-live="polite"></p>
+          <button type="submit" class="btn btn-primary btn-block">
+            Send message
+          </button>
+          <p class="form-success" id="contactSuccess" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="footer">
+      <div class="container footer-container">
+        <div class="footer-brand">
+          <span class="logo">
+            <span class="logo-mark" aria-hidden="true">
+              <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="logoGradFooter" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#3b82f6" />
+                    <stop offset="0.55" stop-color="#2563eb" />
+                    <stop offset="1" stop-color="#1e3a8a" />
+                  </linearGradient>
+                </defs>
+                <rect width="40" height="40" rx="10" fill="url(#logoGradFooter)" />
+                <path
+                  d="M 24.1 12.9 A 10 10 0 1 0 24.1 27.1"
+                  stroke="white"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                  fill="none"
+                />
+                <path
+                  d="M 19 15 A 7 7 0 1 1 19 25"
+                  stroke="#34d399"
+                  stroke-width="2.6"
+                  stroke-linecap="round"
+                  fill="none"
+                />
+              </svg>
+            </span>
+            <span class="logo-text">
+              <span class="logo-text-cash">Cash</span><span class="logo-text-crafter">Crafter</span>
+            </span>
+          </span>
+          <p>Financial clarity for entrepreneurs.</p>
+        </div>
+
+        <div class="footer-links">
+          <a href="#home">Home</a>
+          <a href="#features">Features</a>
+          <a href="#calculator">Calculator</a>
+          <a href="#tools">Tools</a>
+          <a href="#funding">Funding</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
+        </div>
+
+        <p class="footer-copy">
+          © <span id="year"></span> CashCrafter — Built by Harish Kumar
+          Lakshmanan with HTML, CSS &amp; JavaScript.
+        </p>
+      </div>
+    </footer>
+
+    <!-- Main script (vanilla JavaScript, no framework) -->
+    <script src="./script.js"></script>
+  </body>
+</html>
