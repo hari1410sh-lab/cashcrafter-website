@@ -5,6 +5,7 @@ A simple and powerful web application designed to help entrepreneurs manage thei
 ---
 
 #Live website here
+
 https://hari1410sh-lab.github.io/cashcrafter-website/
 
 ##Features
@@ -31,6 +32,7 @@ https://hari1410sh-lab.github.io/cashcrafter-website/
 ---
 
 ##About the Developer
+
 Hi, I am Harish Kumar Lakshmanan, a BCA student and aspiring web developer.  
 I developed this project to help entrepreneurs manage finances easily using simple web technologies.  
 This project was also created as part of my Entrepreneurship subject project at my university.
