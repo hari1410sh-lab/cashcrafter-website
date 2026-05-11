@@ -179,9 +179,9 @@
      ========================================================================= */
   function formatCurrency(value) {
     var n = Number(value) || 0;
-    return n.toLocaleString("en-US", {
+    return n.toLocaleString("en-IN", {
       style: "currency",
-      currency: "USD",
+      currency: "INR",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
